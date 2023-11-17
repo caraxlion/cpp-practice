@@ -40,90 +40,71 @@ int main(int argc, char* argv[])
                   //  change them to the actual letters when the 
                   //  user guesses the letter
 
-  // More initialization code as needed ****************************************************
-  //get target word length
-  int tarlen = strlen(targetWord);
-
-  //create pointer for word to initialize
-  char *wordpt = word;
-  //initialize the array
-  for(int a=0; a < tarlen; a++)
-  {
-    *wordpt = '*';
-    wordpt++;
-  }//end initialize array
-  
-  // don't forget the null character
-  word[tarlen] = '\0';
-
-  // initialize values for continuous play
-  char play = '.'; // quit value
-  int attempts = 10; // turns
-
-  // begin continuous play **********************************************************************
-  while (attempts > 0)
-  {
-    // initialize guess letter in loop so it is reset each time
+  // More initialization code as needed
+    char play = '.';
     char guess;
 
-    cout << attempts << " guesses remain: " << word << endl;
-    cout << "Enter a letter: " << endl;
-    cin >> guess;
+    // initialize the guess word array
+    int tarlen = strlen(targetWord);
 
-    if (guess == '!')
+    for (int i = 0; i < tarlen; i++)
     {
-        play = '!';
-        attempts = 0;
-        break;
+        word[i] = '*';
+    }
+    word[tarlen] = '\0';
+  // The game should continue until a word
+  //  is guessed correctly, a '!' is entered,
+  //  or 10 turns have elapsed without the word being guessed
+    int attempts = 10;
+    while (attempts > 0)
+    {
+        cout << attempts << " remain: " << word << endl; // how many guesses do you have and what have you already guessed
+        cout << "Enter a letter: "; // give me something to work with here
+        cin >> guess;
+
+        if ( guess == '!')
+        {
+            play = 'n';
+            break; // lame-o quitters right here
+        } // end quitters
+        else // compare the guess
+        {
+            // gimme a word pointers
+            char* guessing = &word[0];
+            const char* target = &targetWord[0];
+
+            // call me the comparison function!!!
+            int trying = processGuess(guessing, target, guess);
+            // what's the verdict? do they stay, do they lose a guess? are they confused with life?
+            if (trying == 0)
+            {
+                // hangman time, they lose a guess
+                attempts--;
+            }
+
+        } // end guess comparing
+
+    } // end playing loop
+
+  // Print out end of game status
+    bool end = strcmp(targetWord, word); // check the results
+
+    if (end == true)
+    {
+        cout << "Win! " << attempts << " guesses to spare." << endl; // win and extra guesses
+    }
+    else if (play == 'n')
+    {
+        cout << "Quit!" << endl; // they want to quit cause they're lame
+    }
+    else
+    {
+        cout << "Lose" << word << endl; // lose and final word
     }
 
-    // now check the hangman letters
-    // will return an integer value of the number of letters correct
-    int numLetters = processGuess(word, targetWord, guess);
+    // end game satus print out
 
-    if (numLetters == 0) // letter was already guessed or not in the target word
-    {
-        attempts--;
-
-    } // end bad guess
-
-    // do they match? if so then break
-    const char *guessing = word;
-    int checkwords = strcmp(targetWord, guessing);
-    if (checkwords == 0)
-    {
-        break;
-    }
-
-
-  } // end continuous play **********************************************************************
     
-    // evaluate the end results ***********************************************************
-    if (play == '!') // player wants to quit
-    {
-        cout << "Quit!" << endl;
-    } // end player quit
-    else // print win or loss
-    {
-        // make a pointer to the guessed word to evaluate
-        const char *finalguess = word;
-        //compare the guessed word and the target word ********* use of strcmp ***********************
-        int score = strcmp(targetWord, finalguess);
-
-        //get the results of the comparison and print the player's final score
-        if (score == 0) // winning statement
-        {
-            cout << "Win! " << attempts << " guesses to spare." << endl;
-        } // end winning statement
-        else // losing statement
-        {
-            cout << "Lose! " << word << endl;
-        } // end losing statement
-        
-    } // end win or loss *************************************************************************
-
-    // the end goodbye!
-
   return 0;
 }
 
@@ -131,43 +112,44 @@ int main(int argc, char* argv[])
 // the character that the user just guessed, change the word to 
 // "turn on" any occurrences the guess character and return a count
 // of how many occurrences of 'guess' were found
-int processGuess(char word[], const char targetWord[], char guess)
+int processGuess(char* word, const char* targetWord, char guess)
 {
-    // receives pointer to word[0] and targetWord[0], and just the character entered
-    // targetWord is the array of characters in the target word
-    // word is the hangman letters (*)
+  int worlen = strlen(targetWord); // get the target word length
+  int guslen = strlen(word); // get the guess word length
+  int lettercount = 0;
+  char truther = 'y'; // if they've gussed it already they're a liar not a truther
 
-    //count of occurences of guessed letter
-    int lettercount = 0;
+  // make a pointer for the guessed letter
+  const char* g = &guess;
 
-    const char* occurs = strchr(targetWord, guess);
-    if (occurs != NULL) // the letter IS in the targetWord
+  // check that the letter isn't already guessed
+  for (int j=0; j < guslen; j++)
+  {
+    int guessed = strcmp(word, g);
+    if (guessed != 0)
     {
-        //has this letter already been guessed?
-        char* liar = strchr(word, guess);
+        truther = 'n'; // *gasp* liar! they've already guessed this letter, for shame
+        break;
+    }
+  }
 
-        // NULL if it has not, so execute '*' to letter changes
-        if(liar == NULL)
+  if (truther = 'y') // they have not guessed this yet :)
+  {
+    for (int i=0; i < worlen; i++)
+    {
+        const char* tarval = targetWord; // letter assignment for target word index
+        int check = strcmp(tarval, g); // compare the letters
+
+        if (check == 0)
         {
-            // they are a truther cause they haven't guessed that letter yet
-            // get the word length for the for loop replacement process
-            int tarlength = strlen(targetWord);
-            // replace the stars with letters
-            for(int l=0; l < tarlength; l++)
-            {
-                if (targetWord[l]== guess) // check against the target word location
-                {
-                    word[l] = guess; // replace the * at the corresponding guess word location
-                    lettercount++;
-                } 
-            } // end letter replacement
+            lettercount++; // increment the letter counter
+            word[i] = guess; // change the * to the guess letter
+        }
+    }
+  }
 
-
-        } // end if the letter has not already been guessed
-
-    } // end if the letter IS in the targetWord
     
-    //return the letter count
     return lettercount;
     
+}
 }
